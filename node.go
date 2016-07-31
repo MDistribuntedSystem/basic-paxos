@@ -1,7 +1,10 @@
 package basicpaxos
 
 import (
+	"encoding/json"
 	"io"
+	"io/ioutil"
+	"log"
 	"net"
 )
 
@@ -25,7 +28,49 @@ type Node struct {
 	addr net.Addr
 	io.Writer
 	io.Reader
-	backends []net.TCPConn
+	//internalConns is a container for manager node to other nodes connection.
+	internalConns map[int]net.TCPConn
+
+	configFile string
+	config     *NodeConfig
+}
+
+// the init method is run once when process start.
+func (node *Node) init() {
+
+	//step0. parse config
+
+	if err := node.parseConfig(node.configFile); err != nil {
+		//temp code
+		log.Panicf("Parse Config Error: %s", err.Error())
+		return
+	}
+
+	//step1. init process runtime and update node state to NodeStateInit
+
+	//step2. try to connecting other nodes and store the connection to internalConns
+
+	//init finnal. update node state to NodeStateNormal
+
+}
+
+//parse json or yaml ?  i think json is better then yaml.
+func (node *Node) parseConfig(configPath string) error {
+
+	configStr, err := ioutil.ReadFile(configPath)
+
+	return err
+
+	config := new(NodeConfig)
+
+	err = json.Unmarshal(configStr, config)
+
+	if err != nil {
+		return err
+	}
+
+	node.config = config
+	return nil
 }
 
 /**** State Machine Operator ********/
@@ -53,11 +98,7 @@ func (node *Node) Read(dest []byte) (int, error) {
 	return 0, nil
 }
 
-func (node *Node) watch(conn *net.Conn) {
-
-	for {
-
-	}
+func (node *Node) watch(conn net.Conn) {
 
 }
 
